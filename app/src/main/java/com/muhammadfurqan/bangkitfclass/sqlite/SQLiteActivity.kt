@@ -1,13 +1,17 @@
 package com.muhammadfurqan.bangkitfclass.sqlite
 
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.muhammadfurqan.bangkitfclass.R
 import com.muhammadfurqan.bangkitfclass.sqlite.db.BookDatabaseManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 /**
@@ -36,7 +40,9 @@ class SQLiteActivity : AppCompatActivity() {
     private lateinit var etBookName: AppCompatEditText
     private lateinit var btnAdd: AppCompatButton
     private lateinit var btnRead: AppCompatButton
-
+    private lateinit var rvBooks: RecyclerView
+    private lateinit var bookAdapter: BookAdapter
+    lateinit var listBook: List<BookModel>
     private val bookDb: BookDatabaseManager by lazy {
         BookDatabaseManager(this)
     }
@@ -44,11 +50,18 @@ class SQLiteActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sqlite)
-
+        listBook = listOf()
         etBookName = findViewById(R.id.et_book_name)
         btnAdd = findViewById(R.id.btn_add)
         btnRead = findViewById(R.id.btn_read)
-
+        btnRead.visibility = View.GONE
+        rvBooks = findViewById(R.id.rv_book_list)
+        bookAdapter = BookAdapter(listBook, this)
+        onRead()
+        rvBooks.apply {
+            adapter = bookAdapter
+            layoutManager = LinearLayoutManager(context)
+        }
         btnAdd.setOnClickListener {
             onAdd()
         }
@@ -58,11 +71,13 @@ class SQLiteActivity : AppCompatActivity() {
         }
     }
 
+
     private fun onAdd() {
         val bookName = etBookName.text.toString()
         if (bookName.isNotEmpty()) {
-            lifecycleScope.launch {
+            lifecycleScope.launch(Dispatchers.Main) {
                 bookDb.saveData(bookName)
+                bookAdapter.setData(bookDb.getData())
             }
             etBookName.setText("")
         } else {
@@ -72,6 +87,7 @@ class SQLiteActivity : AppCompatActivity() {
 
     private fun onRead() {
         val bookList = bookDb.getData()
+        bookAdapter.setData(bookList)
         val bookListString = bookList.joinToString(separator = "\n") {
             "Book ${it.id} is ${it.name}"
         }

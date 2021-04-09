@@ -32,6 +32,33 @@ class BookDatabaseManager(context: Context) {
         writeableDb.close()
     }
 
+    fun editData(name: String, id: Int) {
+        val writeableDb = db.writableDatabase
+        val where = "${BookDatabaseOpenHelper.KEY_ID} = ?"
+        val clause = arrayOf(id.toString())
+        // set the data to content values
+        val contentValue = ContentValues()
+        contentValue.put(BookDatabaseOpenHelper.KEY_NAME, name)
+        writeableDb.update(
+            BookDatabaseOpenHelper.TABLE_BOOK,
+            contentValue,
+            where,
+            clause
+        )
+    }
+
+    fun deleteData(id: Int) {
+        val writeableDb = db.writableDatabase
+        val where = "${BookDatabaseOpenHelper.KEY_ID} = ?"
+        val clause = arrayOf(id.toString())
+
+        writeableDb.delete(
+            BookDatabaseOpenHelper.TABLE_BOOK,
+            where,
+            clause
+        )
+    }
+
     fun getData(): List<BookModel> {
         val bookList: MutableList<BookModel> = mutableListOf()
 
